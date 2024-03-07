@@ -1,46 +1,52 @@
 package com.m7.cifrak.service.impl;
 
+import com.m7.cifrak.dto.news.CreateNewsDto;
+import com.m7.cifrak.dto.news.UpdateNewsDto;
 import com.m7.cifrak.entity.News;
+import com.m7.cifrak.mapper.NewsDtoMapper;
 import com.m7.cifrak.repository.NewsRepository;
 import com.m7.cifrak.service.NewsService;
 import com.m7.cifrak.service.NewsTypeService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class NewsServiceImpl implements NewsService {
     private final NewsRepository newsRepository;
     private final NewsTypeService newsTypeService;
+    private final NewsDtoMapper dtoMapper;
 
     @Override
     @Nullable
-    public News add(News news) {
-        return getByName(news.getBrief()) == null
+    public News add(CreateNewsDto createNewsDto) {
+        News news = dtoMapper.toEntity(createNewsDto);
+        return getByTitle(news.getTitle()) == null
                 ? newsRepository.save(news)
                 : null;
     }
 
     @Override
     @Nullable
+    @Transactional
     public News deleteById(Long id) {
-        News news = getById(id);
-        if (news != null) {
-            newsRepository.deleteById(id);
-            return news;
-        }
-        return null;
+        Optional<News> newsOptional = newsRepository.findById(id);
+        newsOptional.ifPresent(newsRepository::delete);
+        return newsOptional.orElse(null);
     }
 
     @Override
     @Nullable
-    public News updateById(Long id, News updatedNews) {
-        News news = getById(id);
-        return news != null && news.getId().equals(updatedNews.getId())
-                ? newsRepository.save(news)
+    @Transactional
+    public News updateById(UpdateNewsDto updatedNewsDto) {
+        News updatedNews = dtoMapper.toEntity(updatedNewsDto);
+        return newsRepository.findById(updatedNews.getId()).isPresent()
+                ? newsRepository.save(updatedNews)
                 : null;
     }
 
@@ -57,8 +63,8 @@ public class NewsServiceImpl implements NewsService {
 
     @Override
     @Nullable
-    public News getByName(String brief) {
-        return newsRepository.findByBriefIgnoreCase(brief).orElse(null);
+    public News getByTitle(String title) {
+        return newsRepository.findByTitleIgnoreCase(title).orElse(null);
     }
 
     @Override

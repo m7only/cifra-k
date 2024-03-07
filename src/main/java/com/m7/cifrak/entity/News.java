@@ -27,8 +27,7 @@ public class News {
     @NotEmpty
     private String content;
 
-    @NotNull
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private NewsType newsType;

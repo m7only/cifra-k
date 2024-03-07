@@ -23,7 +23,4 @@ public class NewsType {
     private String title;
 
     private String color;
-
-    @OneToMany(mappedBy = "id", fetch = FetchType.LAZY)
-    private Set<News> news;
 }

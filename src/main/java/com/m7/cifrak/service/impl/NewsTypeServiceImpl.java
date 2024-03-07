@@ -1,23 +1,30 @@
 package com.m7.cifrak.service.impl;
 
+import com.m7.cifrak.dto.newsType.CreateNewsTypeDto;
+import com.m7.cifrak.dto.newsType.UpdateNewsTypeDto;
 import com.m7.cifrak.entity.NewsType;
+import com.m7.cifrak.mapper.NewsTypeDtoMapper;
 import com.m7.cifrak.repository.NewsTypeRepository;
 import com.m7.cifrak.service.NewsTypeService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class NewsTypeServiceImpl implements NewsTypeService {
 
     private final NewsTypeRepository newsTypeRepository;
+    private final NewsTypeDtoMapper dtoMapper;
 
     @Override
     @Nullable
-    public NewsType add(NewsType newsType) {
+    public NewsType add(CreateNewsTypeDto createNewsTypeDto) {
+        NewsType newsType = dtoMapper.toEntity(createNewsTypeDto);
         return getByTitle(newsType.getTitle()) == null
                 ? newsTypeRepository.save(newsType)
                 : null;
@@ -25,26 +32,24 @@ public class NewsTypeServiceImpl implements NewsTypeService {
 
     @Override
     @Nullable
+    @Transactional
     public NewsType deleteById(Long id) {
-        NewsType newsType = getById(id);
-        if (newsType != null) {
-            newsTypeRepository.deleteById(id);
-            return newsType;
-        }
-        return null;
+        Optional<NewsType> typeOptional = newsTypeRepository.findById(id);
+        typeOptional.ifPresent(newsTypeRepository::delete);
+        return typeOptional.orElse(null);
     }
 
     @Override
     @Nullable
-    public NewsType updateById(Long id, NewsType updatedNewsType) {
-        NewsType newsType = getById(id);
-        return newsType != null && newsType.getId().equals(updatedNewsType.getId())
-                ? newsTypeRepository.save(newsType)
+    @Transactional
+    public NewsType updateById(UpdateNewsTypeDto updateNewsTypeDto) {
+        NewsType updatedNewsType = dtoMapper.toEntity(updateNewsTypeDto);
+        return newsTypeRepository.findById(updatedNewsType.getId()).isPresent()
+                ? newsTypeRepository.save(updatedNewsType)
                 : null;
     }
 
     @Override
-    @Nullable
     public NewsType getById(Long id) {
         return newsTypeRepository.findById(id).orElse(null);
     }

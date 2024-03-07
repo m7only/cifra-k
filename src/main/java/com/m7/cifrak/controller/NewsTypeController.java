@@ -1,13 +1,16 @@
 package com.m7.cifrak.controller;
 
+import com.m7.cifrak.dto.newsType.CreateNewsTypeDto;
+import com.m7.cifrak.dto.newsType.UpdateNewsTypeDto;
 import com.m7.cifrak.entity.NewsType;
+import com.m7.cifrak.mapper.NewsTypeDtoMapper;
 import com.m7.cifrak.service.NewsTypeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -23,6 +26,7 @@ import java.util.List;
 public class NewsTypeController {
 
     private final NewsTypeService newsTypeService;
+    private final NewsTypeDtoMapper mapper;
 
     @PostMapping
     @Operation(summary = "Добавить тип новости")
@@ -30,8 +34,8 @@ public class NewsTypeController {
             @ApiResponse(responseCode = "201", description = "Тип новости добавлен"),
             @ApiResponse(responseCode = "404", description = "Ошибка при добавлении типа новости")
     })
-    public ResponseEntity<NewsType> addNewsType(@RequestBody @Valid NewsType newsType) {
-        return ResponseEntity.ofNullable(newsTypeService.add(newsType));
+    public ResponseEntity<NewsType> addNewsType(@RequestBody @Valid CreateNewsTypeDto createNewsTypeDto) {
+        return ResponseEntity.ofNullable(newsTypeService.add(createNewsTypeDto));
     }
 
     @GetMapping("/{id}")
@@ -40,29 +44,30 @@ public class NewsTypeController {
             @ApiResponse(responseCode = "201", description = "Данные получены"),
             @ApiResponse(responseCode = "404", description = "Тип новостей не найден")
     })
-    public ResponseEntity<NewsType> getNewsTypeById(@PathVariable @NotEmpty Long id) {
+    public ResponseEntity<NewsType> getNewsTypeById(@PathVariable @NotNull Long id) {
         return ResponseEntity.ofNullable(newsTypeService.getById(id));
     }
 
-    @PatchMapping("/{id}")
+    @PutMapping
     @Operation(summary = "Обновить тип новостей")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Тип новостей обновлен"),
             @ApiResponse(responseCode = "404", description = "Тип новостей не найден")
     })
-    public ResponseEntity<NewsType> updateNewsTypeById(@PathVariable @NotEmpty Long id,
-                                                       @RequestBody @Valid NewsType updatedNewsType) {
-        return ResponseEntity.ofNullable(newsTypeService.updateById(id, updatedNewsType));
+    public ResponseEntity<NewsType> updateNewsTypeById(@RequestBody @Valid UpdateNewsTypeDto updateNewsTypeDto) {
+        return ResponseEntity.ofNullable(newsTypeService.updateById(updateNewsTypeDto));
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Удалить тип новостей по ID")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Тип новостей удален"),
+            @ApiResponse(responseCode = "204", description = "Тип новостей удален"),
             @ApiResponse(responseCode = "404", description = "Тип новостей не найден")
     })
-    public ResponseEntity<NewsType> deleteNewsTypeById(@PathVariable @NotEmpty Long id) {
-        return ResponseEntity.ofNullable(newsTypeService.deleteById(id));
+    public ResponseEntity<NewsType> deleteNewsTypeById(@PathVariable @NotNull Long id) {
+        return newsTypeService.deleteById(id) != null
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
     }
 
     @GetMapping

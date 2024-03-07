@@ -8,6 +8,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface NewsRepository extends JpaRepository<News, Long> {
-    Optional<News> findByBriefIgnoreCase(String brief);
+    Optional<News> findByTitleIgnoreCase(String brief);
     List<News> findByNewsType(NewsType newsType);
 }
